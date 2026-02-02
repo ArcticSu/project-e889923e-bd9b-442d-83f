@@ -1,0 +1,65 @@
+# Node / Next.js
+node_modules/
+.next/
+.output/
+out/
+dist/
+
+# Vercel
+.vercel/
+
+# Environment variables and secrets
+# Local env files (do NOT commit secrets to git)
+.env
+.env.*
+.env.local
+
+# Service account keys, credentials, and base64-encoded keys
+# Explicitly ignore the attached service account JSON and similar files
+project-e889923e-bd9b-442d-83f-6df432c0cd59.json
+*.key.json
+*-key.json
+*service_account*.json
+*-sa.json
+*.pem
+*.p12
+key.base64
+*.base64
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# Build / cache
+.cache/
+dist/
+build/
+/.parcel-cache
+/.cache-loader
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional: lockfiles are useful to commit (keep `pnpm-lock.yaml`)
+# Do not ignore package.json, pnpm-lock.yaml, or other source files.
