@@ -1,7 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { BigQuery } from '@google-cloud/bigquery';
-
-const bigquery = new BigQuery();
+import { getBigQueryClient } from '../lib/bigquery';
 
 const CURRENT_SQL = `
 SELECT
@@ -19,6 +17,7 @@ WHERE status IN ('active', 'past_due')
 export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
   try {
+    const bigquery = getBigQueryClient();
     const [rows] = await bigquery.query({ query: CURRENT_SQL, location: 'US' });
     const r = (rows as any[])[0] || {};
     res.status(200).json({

@@ -1,9 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { BigQuery } from '@google-cloud/bigquery';
 import fs from 'fs';
 import path from 'path';
-
-const bigquery = new BigQuery();
+import { getBigQueryClient } from './lib/bigquery';
 
 function loadSQL(name: string) {
   const p = path.join(process.cwd(), 'sql', name);
@@ -15,6 +13,7 @@ const COMBINED_SQL = loadSQL('combine_bar.sql');
 export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
   try {
+    const bigquery = getBigQueryClient();
     const [rows] = await bigquery.query({ query: COMBINED_SQL, location: 'US' });
     const out = (rows as any[]).map(r => ({
       month: (r.month && r.month.value) ? r.month.value : r.month,

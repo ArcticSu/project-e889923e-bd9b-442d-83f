@@ -1,17 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { BigQuery } from '@google-cloud/bigquery';
 import fs from 'fs';
 import path from 'path';
-
-const getBigQueryClient = () => {
-  const b64 = process.env.BIGQUERY_SA_BASE64;
-  if (b64) {
-    const credentials = JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
-    return new BigQuery({ projectId: credentials.project_id, credentials });
-  }
-  // Fallback to ADC / GOOGLE_APPLICATION_CREDENTIALS if present
-  return new BigQuery();
-};
+import { getBigQueryClient } from '../lib/bigquery';
 
 function loadSQL(name: string) {
   const p = path.join(process.cwd(), 'sql', name);

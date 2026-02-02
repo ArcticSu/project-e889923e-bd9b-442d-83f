@@ -1,9 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { BigQuery } from '@google-cloud/bigquery';
 import fs from 'fs';
 import path from 'path';
-
-const bigquery = new BigQuery();
+import { getBigQueryClient } from '../lib/bigquery';
 
 function loadSQL(name: string) {
   const p = path.join(process.cwd(), 'sql', name);
@@ -16,6 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Cache-Control', 'no-store');
   try {
     const months = parseInt(String(req.query.months || '6'), 10) || 6;
+    const bigquery = getBigQueryClient();
     const [rows] = await bigquery.query({ query: HISTORICAL_SQL, location: 'US' });
 
     const sliced = (rows as any[]).slice(0, months).reverse().map(r => ({

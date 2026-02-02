@@ -1,9 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { BigQuery } from '@google-cloud/bigquery';
 import fs from 'fs';
 import path from 'path';
-
-const bigquery = new BigQuery();
+import { getBigQueryClient } from './lib/bigquery';
 
 function loadSQL(name: string) {
   const p = path.join(process.cwd(), 'sql', name);
@@ -15,6 +13,7 @@ const UPGRADE_SQL = loadSQL('upgrade_normal.sql');
 export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
   try {
+    const bigquery = getBigQueryClient();
     const [rows] = await bigquery.query({ query: UPGRADE_SQL, location: 'US' });
     const r = (rows as any[])[0] || {};
     res.status(200).json({
