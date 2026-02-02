@@ -1,7 +1,10 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { getBigQueryClient } from '../lib/bigquery';
+import { getBigQueryClient } from '../../lib/bigquery';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 function loadSQL(name: string) {
   const p = path.join(process.cwd(), 'sql', name);
@@ -22,10 +25,10 @@ FROM ` + "`stripe_test.stripe_subscriptions`" + `
 WHERE status IN ('active', 'past_due')
 `;
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  res.setHeader('Cache-Control', 'no-store');
+export async function GET(req: Request) {
   try {
-    const months = parseInt(String(req.query.months || '6'), 10) || 6;
+    const url = new URL(req.url);
+    const months = parseInt(url.searchParams.get('months') || '6', 10) || 6;
     const bigquery = getBigQueryClient();
     const [histRows] = await bigquery.query({ query: HISTORICAL_SQL, location: 'US' });
     const [curRows] = await bigquery.query({ query: CURRENT_SQL, location: 'US' });
@@ -43,9 +46,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       active_subscription_count: Number(cur.active_subscription_count) || 0
     };
 
-    res.status(200).json({ history, current });
+    return NextResponse.json({ history, current });
   } catch (err: any) {
-    console.error('Error querying BigQuery (mrr):', err);
-    res.status(500).json({ error: err.message });
+    console.error('Error querying BigQuery (mrr) [app router]:', err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }

@@ -1,7 +1,9 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { getBigQueryClient } from './lib/bigquery';
+import { getBigQueryClient } from '../../lib/bigquery';
+
+export const runtime = 'nodejs';
 
 function loadSQL(name: string) {
   const p = path.join(process.cwd(), 'sql', name);
@@ -10,18 +12,17 @@ function loadSQL(name: string) {
 
 const UPGRADE_SQL = loadSQL('upgrade_normal.sql');
 
-export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
-  res.setHeader('Cache-Control', 'no-store');
+export async function GET() {
   try {
     const bigquery = getBigQueryClient();
     const [rows] = await bigquery.query({ query: UPGRADE_SQL, location: 'US' });
     const r = (rows as any[])[0] || {};
-    res.status(200).json({
+    return NextResponse.json({
       active_upgrade_users: Number(r.active_upgrade_users || 0),
       active_normal_users: Number(r.active_normal_users || 0)
     });
   } catch (err: any) {
-    console.error('Error querying BigQuery (active_breakdown):', err);
-    res.status(500).json({ error: err.message });
+    console.error('Error querying BigQuery (active_breakdown) [app router]:', err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }

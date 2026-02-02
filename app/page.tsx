@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import TrendChart from '../components/TrendChart';
@@ -10,9 +11,7 @@ import GrowthChurnChart from '../components/GrowthChurnChart';
 
 type HistoryRow = {
   month: string;
-  // legacy single-column MRR
   mrr_amount?: number;
-  // new 3-column MRR fields (gross / delinquent / collectible)
   gross?: number;
   delinquent?: number;
   collectible?: number;
@@ -24,8 +23,6 @@ export default function Home() {
   const [pie, setPie] = useState<any[]>([]);
   const [combined, setCombined] = useState<any[]>([]);
   const [activeBreakdown, setActiveBreakdown] = useState<{ upgrade: number; normal: number }>({ upgrade: 0, normal: 0 });
-  // If NEXT_PUBLIC_API_URL is not set, use relative path so client calls the
-  // same origin Next.js API routes (avoids wrong port / CORS issues).
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
   useEffect(() => {
@@ -38,9 +35,6 @@ export default function Home() {
           axios.get(`${apiUrl}/api/active_breakdown`),
         ]);
 
-        // debug: log API payload so we can see what the browser received
-        // in the devtools console
-        // eslint-disable-next-line no-console
         console.log('mrrRes.data', mrrRes.data);
 
         setHistory(mrrRes.data.history || []);
@@ -69,21 +63,17 @@ export default function Home() {
               <MetricCard label="Active Subs" value={`${current.active_subscription_count}`} />
             </div>
 
-            {/* MRR trend */}
-            {/* Use MRR3Chart when history contains gross/delinquent/collectible */}
             {history && history.length > 0 && history[0].gross !== undefined ? (
               <MRR3Chart data={history} />
             ) : (
               <TrendChart data={history as any} />
             )}
 
-            {/* Active users & rates should be below the MRR trend */}
             <div className="mt-6">
               <ActiveSizeChart data={combined} />
             </div>
           </div>
 
-          {/* Right column: Current Status (pie) placed statically to the right of the MRR chart */}
           <aside className="md:w-1/3" style={{ flex: 1 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 28, alignItems: 'stretch' }}>
               <div style={{ height: 360 }}>

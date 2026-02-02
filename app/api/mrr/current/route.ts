@@ -1,5 +1,7 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { getBigQueryClient } from '../lib/bigquery';
+import { NextResponse } from 'next/server';
+import { getBigQueryClient } from '../../../lib/bigquery';
+
+export const runtime = 'nodejs';
 
 const CURRENT_SQL = `
 SELECT
@@ -14,18 +16,17 @@ FROM ` + "`stripe_test.stripe_subscriptions`" + `
 WHERE status IN ('active', 'past_due')
 `;
 
-export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
-  res.setHeader('Cache-Control', 'no-store');
+export async function GET() {
   try {
     const bigquery = getBigQueryClient();
     const [rows] = await bigquery.query({ query: CURRENT_SQL, location: 'US' });
     const r = (rows as any[])[0] || {};
-    res.status(200).json({
+    return NextResponse.json({
       current_live_mrr: Number(r.current_live_mrr) || 0,
       active_subscription_count: Number(r.active_subscription_count) || 0
     });
   } catch (err: any) {
-    console.error('Error querying BigQuery (current):', err);
-    res.status(500).json({ error: err.message });
+    console.error('Error querying BigQuery (current) [app router]:', err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }

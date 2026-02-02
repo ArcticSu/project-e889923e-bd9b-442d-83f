@@ -1,7 +1,9 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { getBigQueryClient } from './lib/bigquery';
+import { getBigQueryClient } from '../../lib/bigquery';
+
+export const runtime = 'nodejs';
 
 function loadSQL(name: string) {
   const p = path.join(process.cwd(), 'sql', name);
@@ -10,8 +12,7 @@ function loadSQL(name: string) {
 
 const COMBINED_SQL = loadSQL('combine_bar.sql');
 
-export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
-  res.setHeader('Cache-Control', 'no-store');
+export async function GET() {
   try {
     const bigquery = getBigQueryClient();
     const [rows] = await bigquery.query({ query: COMBINED_SQL, location: 'US' });
@@ -25,9 +26,9 @@ export default async function handler(_req: NextApiRequest, res: NextApiResponse
       churn_rate: r.churn_rate == null ? null : Number(r.churn_rate),
       net_user_change: Number(r.net_user_change || 0)
     }));
-    res.status(200).json(out);
+    return NextResponse.json(out);
   } catch (err: any) {
-    console.error('Error querying BigQuery (combined):', err);
-    res.status(500).json({ error: err.message });
+    console.error('Error querying BigQuery (combined) [app router]:', err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }
