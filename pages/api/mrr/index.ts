@@ -3,7 +3,15 @@ import { BigQuery } from '@google-cloud/bigquery';
 import fs from 'fs';
 import path from 'path';
 
-const bigquery = new BigQuery();
+const getBigQueryClient = () => {
+  const b64 = process.env.BIGQUERY_SA_BASE64;
+  if (b64) {
+    const credentials = JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+    return new BigQuery({ projectId: credentials.project_id, credentials });
+  }
+  // Fallback to ADC / GOOGLE_APPLICATION_CREDENTIALS if present
+  return new BigQuery();
+};
 
 function loadSQL(name: string) {
   const p = path.join(process.cwd(), 'sql', name);
@@ -28,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Cache-Control', 'no-store');
   try {
     const months = parseInt(String(req.query.months || '6'), 10) || 6;
+    const bigquery = getBigQueryClient();
     const [histRows] = await bigquery.query({ query: HISTORICAL_SQL, location: 'US' });
     const [curRows] = await bigquery.query({ query: CURRENT_SQL, location: 'US' });
 
