@@ -2,7 +2,7 @@
 Generate Stripe test data using Test Clocks to simulate 6 months of billing history.
 
 Usage:
-  - Set environment variable `STRIPE_API_KEY` to your test secret key (sk_test_...)
+  - Set environment variable `STRIPE_SECRET_KEY` to your test secret key (sk_test_...)
   - Install dependencies: pip install -r requirements.txt
   - Run: python generate_stripe_test_data.py --count 60 --months 6
 
@@ -148,7 +148,7 @@ def main():
     parser.add_argument('--annual-pct', type=float, default=20.0, help='Percent of customers that should be annual (billed yearly)')
     args = parser.parse_args()
 
-    # Load .env if present so users can keep STRIPE_API_KEY in repo root
+    # Load .env if present so users can keep STRIPE_SECRET_KEY in repo root
     def _load_dotenv(path: str = ".env") -> None:
         if not os.path.exists(path):
             return
@@ -168,9 +168,9 @@ def main():
 
     _load_dotenv()
 
-    stripe_key = os.environ.get('STRIPE_API_KEY')
+    stripe_key = os.environ.get('STRIPE_SECRET_KEY')
     if not stripe_key:
-        print('ERROR: Set STRIPE_API_KEY environment variable to your test secret key (sk_test_...)')
+        print('ERROR: Set STRIPE_SECRET_KEY environment variable to your test secret key (sk_test_...)')
         return
 
     stripe.api_key = stripe_key

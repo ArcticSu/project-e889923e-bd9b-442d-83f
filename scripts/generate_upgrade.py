@@ -8,7 +8,7 @@ Behavior:
  - Simulates `--months` months total (default 6) by advancing Test Clocks and paying invoices.
 
 Usage:
- - Set `STRIPE_API_KEY` environment variable to your test secret key (sk_test_...)
+ - Set `STRIPE_SECRET_KEY` environment variable to your test secret key (sk_test_...)
  - Run: python generate_upgrade.py --count 10 --months 6
 
 Notes:
@@ -121,9 +121,9 @@ def main():
 
     _load_dotenv()
 
-    stripe_key = os.environ.get('STRIPE_API_KEY')
+    stripe_key = os.environ.get('STRIPE_SECRET_KEY')
     if not stripe_key:
-        print('ERROR: Set STRIPE_API_KEY environment variable to your test secret key (sk_test_...)')
+        print('ERROR: Set STRIPE_SECRET_KEY environment variable to your test secret key (sk_test_...)')
         return
 
     stripe.api_key = stripe_key

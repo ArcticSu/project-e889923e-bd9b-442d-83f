@@ -12,7 +12,7 @@ Goal:
 - Fill invoice.subscription_id in ETL using mapping: customer_id -> subscription_id
 
 Env required:
-  STRIPE_API_KEY (or STRIPE_SECRET_KEY)
+  STRIPE_SECRET_KEY
   GOOGLE_APPLICATION_CREDENTIALS
 """
 
@@ -41,9 +41,9 @@ def iso(ts: Optional[int]) -> Optional[str]:
 
 
 def get_stripe_key() -> str:
-    k = os.environ.get("STRIPE_API_KEY") or os.environ.get("STRIPE_SECRET_KEY")
+    k = os.environ.get("STRIPE_SECRET_KEY")
     if not k:
-        raise RuntimeError("Set STRIPE_API_KEY (or STRIPE_SECRET_KEY) environment variable.")
+        raise RuntimeError("Set STRIPE_SECRET_KEY environment variable.")
     return k
 
 
