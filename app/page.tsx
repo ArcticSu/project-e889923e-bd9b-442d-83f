@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import Link from 'next/link';
 import axios from 'axios';
 import TrendChart from '../components/TrendChart';
 import MRR3Chart from '../components/MRR3Chart';
@@ -17,15 +18,70 @@ type HistoryRow = {
   collectible?: number;
 };
 
+const CACHE_TTL_MS = 60 * 1000; // 1 minute
+const CACHE_KEY = 'mrr_dashboard_cache';
+
+type DashboardCache = {
+  history: HistoryRow[];
+  current: { current_live_mrr: number; active_subscription_count: number };
+  pie: any[];
+  combined: any[];
+  activeBreakdown: { upgrade: number; normal: number };
+  ts: number;
+};
+
+function getStoredCache(): DashboardCache | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as DashboardCache;
+    if (Date.now() - parsed.ts > CACHE_TTL_MS) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function setStoredCache(cache: DashboardCache) {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch {}
+}
+
+let memoryCache: DashboardCache | null = null;
+
+function getCache(): DashboardCache | null {
+  return memoryCache ?? getStoredCache();
+}
+
+const emptyCurrent = { current_live_mrr: 0, active_subscription_count: 0 };
+const emptyBreakdown = { upgrade: 0, normal: 0 };
+
 export default function Home() {
-  const [history, setHistory] = useState<HistoryRow[]>([]);
-  const [current, setCurrent] = useState<{ current_live_mrr: number; active_subscription_count: number }>({ current_live_mrr: 0, active_subscription_count: 0 });
-  const [pie, setPie] = useState<any[]>([]);
-  const [combined, setCombined] = useState<any[]>([]);
-  const [activeBreakdown, setActiveBreakdown] = useState<{ upgrade: number; normal: number }>({ upgrade: 0, normal: 0 });
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const mem = memoryCache;
+  const [history, setHistory] = useState<HistoryRow[]>(() => mem?.history ?? []);
+  const [current, setCurrent] = useState(() => mem?.current ?? emptyCurrent);
+  const [pie, setPie] = useState<any[]>(() => mem?.pie ?? []);
+  const [combined, setCombined] = useState<any[]>(() => mem?.combined ?? []);
+  const [activeBreakdown, setActiveBreakdown] = useState(() => mem?.activeBreakdown ?? emptyBreakdown);
+  const [loading, setLoading] = useState(!mem);
+  const mounted = useRef(true);
 
   useEffect(() => {
+    mounted.current = true;
+    const fresh = getCache();
+    if (fresh) {
+      setHistory(fresh.history);
+      setCurrent(fresh.current);
+      setPie(fresh.pie);
+      setCombined(fresh.combined);
+      setActiveBreakdown(fresh.activeBreakdown);
+      setLoading(false);
+    }
+
     async function loadAll() {
       try {
         const [mrrRes, pieRes, combRes, actRes] = await Promise.all([
@@ -34,26 +90,52 @@ export default function Home() {
           axios.get(`${apiUrl}/api/combined`),
           axios.get(`${apiUrl}/api/active_breakdown`),
         ]);
-
-        console.log('mrrRes.data', mrrRes.data);
-
-        setHistory(mrrRes.data.history || []);
-        setCurrent(mrrRes.data.current || { current_live_mrr: 0, active_subscription_count: 0 });
-        setPie(pieRes.data || []);
-        setCombined(combRes.data || []);
-        setActiveBreakdown({ upgrade: actRes.data.active_upgrade_users || 0, normal: actRes.data.active_normal_users || 0 });
+        if (!mounted.current) return;
+        const next: DashboardCache = {
+          history: mrrRes.data.history || [],
+          current: mrrRes.data.current || { current_live_mrr: 0, active_subscription_count: 0 },
+          pie: pieRes.data || [],
+          combined: combRes.data || [],
+          activeBreakdown: { upgrade: actRes.data.active_upgrade_users || 0, normal: actRes.data.active_normal_users || 0 },
+          ts: Date.now(),
+        };
+        memoryCache = next;
+        setStoredCache(next);
+        setHistory(next.history);
+        setCurrent(next.current);
+        setPie(next.pie);
+        setCombined(next.combined);
+        setActiveBreakdown(next.activeBreakdown);
       } catch (err) {
         console.error(err);
+        if (mounted.current) setLoading(false);
+      } finally {
+        if (mounted.current) setLoading(false);
       }
     }
     loadAll();
+    return () => {
+      mounted.current = false;
+    };
   }, [apiUrl]);
 
   return (
     <main className="p-6">
       <div className="max-w-6xl mx-auto">
-        <header className="mb-6">
+        {loading && history.length === 0 && (
+          <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-600">
+            Loading dashboard…
+          </div>
+        )}
+        <header className="mb-6 flex items-center justify-between gap-4">
           <h1 className="text-2xl font-bold">MRR Dashboard</h1>
+          <Link
+            href="/agent"
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+          >
+            <span aria-hidden>💬</span>
+            AI Agent
+          </Link>
         </header>
 
         <div className="md:flex md:gap-6" style={{ display: 'flex', gap: 24 }}>

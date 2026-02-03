@@ -1,70 +1,94 @@
 # MRR Dashboard
 
-A Next.js 14 (App Router) dashboard for visualizing Monthly Recurring Revenue (MRR) metrics from Stripe subscriptions stored in BigQuery.
+A Next.js 14 dashboard for visualizing Stripe subscription MRR (Monthly Recurring Revenue) metrics with an AI-powered analytics agent.
 
 ## Features
 
-- **Real-time MRR tracking** — Current live MRR and active subscription counts
-- **Historical trends** — 6-month MRR breakdown (gross/delinquent/collectible)
-- **User analytics** — Active paid users, growth/churn rates, upgrade vs. normal users
-- **Status distribution** — Subscription status pie chart (active/past_due/canceled)
+- **MRR Dashboard** — Real-time MRR, historical trends (Gross/Delinquent/Collectible), user growth/churn, subscription status distribution
+- **AI Agent** — Natural language analytics powered by BigQuery, with streaming chat, SQL queries, chart generation, and HTML reports
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Charts**: Recharts
-- **Data Source**: Google BigQuery (Stripe data)
-- **Deployment**: Vercel
+- **Framework**: Next.js 14 (App Router) + TypeScript + Tailwind CSS
+- **Data**: Google BigQuery (Stripe subscription data)
+- **Agent**: Vercel AI SDK + Prisma (PostgreSQL)
+- **Charts**: Recharts + ECharts
+
+---
+
+## Quick Start
+
+### 1. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 2. Configure Environment Variables
+
+Create `.env.local` with the following required variables:
+
+```bash
+# BigQuery (Dashboard + Agent queries)
+BIGQUERY_SA_BASE64=<your-base64-encoded-service-account-json>
+
+# PostgreSQL (Agent session storage)
+DATABASE_URL="postgresql://user:password@host:5432/dbname?schema=public"
+
+# Vercel AI Gateway (Agent streaming chat)
+AI_GATEWAY_API_KEY=<your-vercel-ai-gateway-api-key>
+# AI_GATEWAY_MODEL=openai/gpt-4o-mini  # Optional, defaults to gpt-4o-mini
+```
+
+**BigQuery Setup**:
+- Create a GCP service account with `BigQuery Data Viewer` + `BigQuery Job User` roles
+- Download the JSON key, run `cat key.json | base64`, and paste the output into `BIGQUERY_SA_BASE64`
+
+### 3. Initialize Database
+
+```bash
+pnpm run migrate:dev
+```
+
+### 4. Start Development Server
+
+```bash
+pnpm dev
+```
+
+- Dashboard: [http://localhost:3000](http://localhost:3000)
+- AI Agent: [http://localhost:3000/agent](http://localhost:3000/agent)
+
+### 5. Production Build
+
+```bash
+pnpm build
+pnpm start
+```
+
+---
 
 ## Project Structure
 
 ```
-mrr_frontend_next/
-├── app/                   # Next.js App Router
-│   ├── api/              # API routes (BigQuery queries)
-│   ├── lib/              # Shared utilities (BigQuery client)
-│   ├── layout.tsx        # Root layout
-│   └── page.tsx          # Dashboard home
-├── components/           # React chart components
-├── sql/                  # BigQuery SQL queries
-└── styles/              # Global CSS & Tailwind config
+mrr_vercel/
+├── app/
+│   ├── api/                    # API routes (BigQuery queries + Agent Chat)
+│   ├── agent/                  # AI Agent page
+│   ├── lib/
+│   │   ├── agent/              # Agent tools (runBigQuery, generateEchartsOption, generateHtmlReport)
+│   │   └── bigquery.ts         # BigQuery client
+│   └── page.tsx                # Dashboard home
+├── components/                 # Chart components + Agent UI
+├── docs/
+│   └── data_catalog.md         # Agent data specification (single source of truth)
+├── prisma/
+│   └── schema.prisma           # Agent session/message storage
+└── sql/                        # BigQuery SQL query templates
 ```
 
-## Setup
+---
 
-1. **Install dependencies**:
-   ```bash
-   pnpm install
-   ```
+## License
 
-2. **Configure BigQuery credentials**:
-   - Create a GCP service account with `BigQuery Data Viewer` and `BigQuery Job User` roles
-   - Download the JSON key and base64 encode it:
-     ```bash
-     base64 key.json | tr -d '\n' > key.base64
-     ```
-   - Add to `.env.local`:
-     ```
-     BIGQUERY_SA_BASE64=<paste base64 string here>
-     ```
-
-3. **Run locally**:
-   ```bash
-   pnpm dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000)
-
-4. **Build for production**:
-   ```bash
-   pnpm build
-   pnpm start
-   ```
-
-## API Routes
-
-- `GET /api/mrr?months=6` — Historical + current MRR
-- `GET /api/pie` — Subscription status distribution
-- `GET /api/combined` — Active users & growth/churn rates
-- `GET /api/active_breakdown` — Upgrade vs. normal users
+MIT

@@ -1,0 +1,35 @@
+// Prisma schema for MRR dashboard + Agent Chat (阶段 2 最小存储)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String?
+  userId    String?
+
+  messages ChatMessage[]
+
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      String   // "user" | "assistant" | "system"
+  content   String   @db.Text
+  parts     Json?    // UIMessage parts (tool results: runBigQuery, generateEchartsOption, generateHtmlReport) for restore after refresh
+  createdAt DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@map("chat_messages")
+}

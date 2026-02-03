@@ -63,3 +63,4 @@ build/
 
 # Optional: lockfiles are useful to commit (keep `pnpm-lock.yaml`)
 # Do not ignore package.json, pnpm-lock.yaml, or other source files.
+/prisma/migrations/*
