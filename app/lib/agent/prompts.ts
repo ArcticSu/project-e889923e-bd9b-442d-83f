@@ -36,7 +36,7 @@ const DASHBOARD_API_MAP = `
 | "MRR history", "gross MRR", "delinquent MRR", "collectible MRR", "MRR trend", "MRR analysis" | \`callDashboardAPI({ api: 'mrr' })\` | { history: [{ month, gross, delinquent, collectible }], current: {...} } |
 | "growth rate", "churn rate", "user growth", "active paid users", "new users", "churned users", "growth and churn" | \`callDashboardAPI({ api: 'combined' })\` | [{ month, active_paid_users_eom, new_paid_users_eom, churned_paid_users_eom, growth_rate, churn_rate }] |
 | "subscription status", "status distribution", "pie chart", "status breakdown" | \`callDashboardAPI({ api: 'pie' })\` | [{ status, cnt }] |
-| "user list", "customers", "user details" | \`callDashboardAPI({ api: 'users', params: {...} })\` | Array of user objects |
+| "user list", "customers", "user details" | \`callDashboardAPI({ api: 'users', params: {...} })\` | Array of user objects (returns ALL users, typically 80+ records) |
 
 **MANDATORY RULES**:
 1. **If user says "active breakdown" or ANY keyword above → You MUST call callDashboardAPI** - Do NOT use runBigQuery
@@ -44,6 +44,7 @@ const DASHBOARD_API_MAP = `
 3. **Do NOT think about SQL** - Just call the API directly
 4. API returns data in format ready for generateEchartsOption (columns + rows included)
 5. Only use runBigQuery for queries NOT in the table above (custom queries)
+6. **CRITICAL for users API**: The API returns ALL users (typically 80+ records). When doing cross-metric analysis (e.g., MRR trend + user list), use ALL user data for calculations. In reports, you may summarize or show samples, but analysis must be based on the complete dataset. The response includes totalCount to indicate the full data volume.
 `;
 
 // ============================================================================
@@ -76,12 +77,16 @@ const WORKFLOW_DECISION = `
    - If user says "MRR" → callDashboardAPI({ api: 'mrr' })
    - If user says "growth rate" or "churn rate" → callDashboardAPI({ api: 'combined' })
    - If user says "subscription status" → callDashboardAPI({ api: 'pie' })
+   - If user says "user list" or needs user data for cross-metric analysis → callDashboardAPI({ api: 'users' })
+   - **IMPORTANT**: For users API, it returns ALL users (80+ records). Use ALL data for calculations even if you summarize in the report.
 2. **generateEchartsOption** - **REQUIRED** - Create chart from API data
    - active_breakdown → pie chart
    - combined → line chart (growth/churn rates over time)
    - mrr → line chart (MRR trends)
    - pie → pie chart
+   - users → typically not charted directly, but used for cross-metric analysis
 3. **generateHtmlReport** - Generate report with chart and data
+   - **For cross-metric analysis** (e.g., MRR trend + user list): Use ALL user data from users API for calculations. You may summarize in the report, but ensure analysis is based on complete dataset.
 
 **For Custom Metrics (C)**:
 1. **runBigQuery** - Write custom SQL based on DATA CATALOG

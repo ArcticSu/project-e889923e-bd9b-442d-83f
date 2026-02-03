@@ -21,7 +21,7 @@ type User = {
   unpaid_invoice_count: number;
 };
 
-export default function UserList() {
+export default function UserList({ onAnalyzeUser }: { onAnalyzeUser?: (email: string) => void }) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,7 +121,7 @@ export default function UserList() {
 
   return (
     <div className="bg-white rounded-lg shadow p-4">
-      <div className="text-sm text-gray-700 font-semibold mb-4">User List</div>
+      <div className="text-lg text-gray-700 font-semibold mb-4">User List</div>
       
       {/* Filters */}
       <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -183,8 +183,18 @@ export default function UserList() {
             <tbody className="bg-white divide-y divide-gray-200">
               {currentUsers.map((user) => (
                 <tr key={user.customer_id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                    {user.email || '-'}
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">
+                    {user.email ? (
+                      <button
+                        onClick={() => onAnalyzeUser?.(user.email)}
+                        title="click to analyze this user behavior"
+                        className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                      >
+                        {user.email}
+                      </button>
+                    ) : (
+                      <span className="text-gray-900">-</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(user.subscription_status)}`}>

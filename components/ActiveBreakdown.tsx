@@ -13,8 +13,8 @@ export default function ActiveBreakdown({ upgrade, normal }: { upgrade: number; 
   const total = upgrade + normal;
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 w-full">
-      <div className="text-sm text-gray-500">Active Breakdown</div>
+    <div className="bg-white rounded-lg shadow p-4 w-full mt-10">
+      <div className="text-lg text-gray-700 font-semibold">Active Breakdown</div>
       <div className="flex items-center justify-between mt-2 mb-3">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">

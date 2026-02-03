@@ -18,8 +18,8 @@ export default function GrowthChurnChart({ data }: { data: any[] }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 mt-6">
-      <div className="text-sm text-gray-700 font-semibold mb-3">User Growth vs Churn</div>
+    <div className="bg-white rounded-lg shadow p-4 mt-2">
+      <div className="text-lg text-gray-700 font-semibold mb-3">User Growth vs Churn</div>
       <div style={{ height: 280 }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>

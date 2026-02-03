@@ -8,10 +8,10 @@ export default function StatusPie({ data }: { data: { status: string; cnt: numbe
   const total = chartData.reduce((s, c) => s + (c.value || 0), 0) || 1;
 
   return (
-    <div className="card">
+    <div className="card mt-2">
       <div className="flex justify-between items-start">
         <div>
-          <h4 className="text-lg font-semibold">User Subscription Status</h4>
+          <h4 className="text-xl font-semibold">User Subscription Status</h4>
           <div className="text-sm text-gray-500">Distribution by status</div>
         </div>
       </div>

@@ -281,6 +281,41 @@ export default function Home() {
     [loadSessions, sessionIdFromUrl, router]
   );
 
+  const analyzeUser = useCallback(
+    async (email: string) => {
+      const message = `analyze the behavior of user with email: ${email}`;
+      
+      // 打开 Agent 侧边栏
+      setAgentOpen(true);
+      
+      // 如果有当前 session，直接设置 pendingFirstMessage
+      if (sessionIdFromUrl) {
+        setPendingFirstMessage(message);
+        return;
+      }
+      
+      // 如果没有 session，创建新 session
+      setEmptySending(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+        if (!res.ok) throw new Error('Failed to create session');
+        const data = (await res.json()) as { sessionId: string };
+        sessionStorage.setItem('agent_pending_message', message);
+        router.push(`/?sessionId=${data.sessionId}`, { scroll: false });
+        await loadSessions();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Unknown error');
+        setEmptySending(false);
+      }
+    },
+    [sessionIdFromUrl, router, loadSessions]
+  );
+
   return (
     <div className="relative min-h-screen bg-gray-50">
       {/* Dashboard Content Area */}
@@ -324,7 +359,7 @@ export default function Home() {
               </div>
 
               <div className="mt-6">
-                <UserList />
+                <UserList onAnalyzeUser={analyzeUser} />
               </div>
             </div>
 

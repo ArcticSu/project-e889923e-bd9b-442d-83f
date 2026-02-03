@@ -84,11 +84,16 @@ Available APIs:
       const data = await response.json();
       
       // Format response for agent
+      const isUsersAPI = api === 'users';
+      const usersData = isUsersAPI && Array.isArray(data) ? data : [];
+      
       return {
         success: true,
         api: api,
         description: apiConfig.description,
         data: data,
+        // Include total count for users API to help agent understand data volume
+        ...(isUsersAPI && { totalCount: usersData.length }),
         // For chart generation, provide columns and rows format
         columns: api === 'active_breakdown' 
           ? ['active_upgrade_users', 'active_normal_users']
@@ -98,6 +103,8 @@ Available APIs:
           ? ['month', 'gross', 'delinquent', 'collectible']
           : api === 'pie'
           ? ['status', 'cnt']
+          : isUsersAPI
+          ? ['customer_id', 'email', 'subscription_status', 'monthly_mrr', 'is_delinquent', 'customer_created_ts', 'subscription_created_ts', 'subscription_canceled_ts']
           : undefined,
         rows: api === 'active_breakdown'
           ? [[data.active_upgrade_users, data.active_normal_users]]
@@ -119,6 +126,17 @@ Available APIs:
             ]) : []
           : api === 'pie'
           ? Array.isArray(data) ? data.map((item: any) => [item.status, item.cnt]) : []
+          : isUsersAPI
+          ? usersData.map((item: any) => [
+              item.customer_id || '',
+              item.email || '',
+              item.subscription_status || 'none',
+              item.monthly_mrr || 0,
+              item.is_delinquent || false,
+              item.customer_created_ts || '',
+              item.subscription_created_ts || '',
+              item.subscription_canceled_ts || ''
+            ])
           : undefined,
       };
     } catch (err: any) {
