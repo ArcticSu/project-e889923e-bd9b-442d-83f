@@ -36,18 +36,18 @@ function tableHtml(title: string, columns: string[], rows: unknown[][]): string 
 
 export const generateHtmlReportTool = tool({
   description:
-    'Generate an HTML insight report. Use after runBigQuery and generateEchartsOption. Pass rich section content so the report is self-contained. Do not include <script>.',
+    'Generate an HTML insight report. For user behavior analysis: use after runBigQuery only (set charts to empty array). For dashboard metrics: use after runBigQuery and generateEchartsOption. All fields except topic are optional but should be provided with meaningful content when available. Do not include <script>.',
   inputSchema: z.object({
-    topic: z.string().describe('Report topic / title'),
-    keyFindings: z.array(z.string()).optional().describe('Bullet key findings from the data'),
-    executiveSummary: z.string().optional().describe('1–2 sentences summarizing the main result (e.g. MRR trend)'),
-    keyMetricsText: z.string().optional().describe('Short paragraph highlighting main KPIs and numbers from the data'),
-    insightsWhat: z.string().optional().describe('What happened: describe the main trends or changes with numbers'),
-    insightsWhy: z.string().optional().describe('Why it happened: possible drivers'),
-    insightsSoWhat: z.string().optional().describe('So what: business impact'),
-    insightsNowWhat: z.string().optional().describe('Now what: recommended next actions'),
-    risksText: z.string().optional().describe('Risks & data limitations (1–2 sentences)'),
-    nextStepsText: z.string().optional().describe('Concrete recommendations'),
+    topic: z.string().describe('Report topic / title (REQUIRED)'),
+    keyFindings: z.array(z.string()).optional().default([]).describe('Bullet key findings from the data (optional, defaults to empty array)'),
+    executiveSummary: z.string().optional().default('').describe('1–2 sentences summarizing the main result (optional)'),
+    keyMetricsText: z.string().optional().default('').describe('Short paragraph highlighting main KPIs and numbers from the data (optional)'),
+    insightsWhat: z.string().optional().default('').describe('What happened: describe the main trends or changes with numbers (optional)'),
+    insightsWhy: z.string().optional().default('').describe('Why it happened: possible drivers (optional)'),
+    insightsSoWhat: z.string().optional().default('').describe('So what: business impact (optional)'),
+    insightsNowWhat: z.string().optional().default('').describe('Now what: recommended next actions (optional)'),
+    risksText: z.string().optional().default('').describe('Risks & data limitations (optional)'),
+    nextStepsText: z.string().optional().default('').describe('Concrete recommendations (optional)'),
     dataSnippets: z
       .array(
         z.object({
@@ -57,11 +57,13 @@ export const generateHtmlReportTool = tool({
         })
       )
       .optional()
-      .default([]),
+      .default([])
+      .describe('Array of data tables to include in the report (optional, defaults to empty array)'),
     charts: z
       .array(z.object({ title: z.string(), option: z.record(z.any()) }))
       .optional()
-      .default([]),
+      .default([])
+      .describe('Array of charts to reference in the report. For user behavior analysis, set to empty array [] (optional, defaults to empty array)'),
   }),
   execute: async ({
     topic,

@@ -11,7 +11,7 @@ const FORBIDDEN = /\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE)\b/i;
 
 export const runBigQueryTool = tool({
   description:
-    'Run a BigQuery Standard SQL query (SELECT only). Use this to fetch MRR, subscriptions, or any analytics data. Think about the business question first; use LIMIT for large tables. Results are for analysis and insights, not to dump raw to the user.',
+    'Run a BigQuery Standard SQL query (SELECT only). Use this to fetch MRR, subscriptions, or any analytics data. Think about the business question first; use LIMIT for large tables. Results are for analysis and insights, not to dump raw to the user. **For user behavior analysis**: After this tool completes, you MUST call generateHtmlReport. Do NOT stop after runBigQuery.',
   inputSchema: z.object({
     sql: z.string().describe('Valid BigQuery Standard SQL SELECT statement'),
     dryRun: z.boolean().optional().describe('If true, only validate the query without executing'),

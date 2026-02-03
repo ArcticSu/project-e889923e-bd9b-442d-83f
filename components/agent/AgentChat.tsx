@@ -24,12 +24,14 @@ export function AgentChat({
   onMessageSent,
   pendingFirstMessage = null,
   onClearPending,
+  hideTitle = false,
 }: {
   sessionId: string;
   initialMessages?: UIMessage[];
   onMessageSent?: () => void;
   pendingFirstMessage?: string | null;
   onClearPending?: () => void;
+  hideTitle?: boolean;
 }) {
   const [input, setInput] = useState('');
   const pendingSentRef = useRef(false);
@@ -57,23 +59,29 @@ export function AgentChat({
   const isLoading = rawLoading && !hasCompleteReport;
 
   return (
-    <>
-      <div className="border-b border-gray-200 bg-white px-4 py-3">
-        <h1 className="text-lg font-semibold text-gray-900">Agent Chat</h1>
-      </div>
+    <div className="flex flex-1 flex-col min-h-0 overflow-hidden">
+      {!hideTitle && (
+        <div className="border-b border-gray-200 bg-white px-4 py-3 shrink-0">
+          <h1 className="text-lg font-semibold text-gray-900">Agent Chat</h1>
+        </div>
+      )}
       {error && (
-        <div className="mx-4 mt-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800">
+        <div className="mx-4 mt-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800 shrink-0">
           <strong>Error:</strong> {error.message}
         </div>
       )}
-      <MessageList messages={messages ?? []} isLoading={isLoading} />
-      <ChatInput
-        input={input}
-        setInput={setInput}
-        onSend={handleSend}
-        isLoading={isLoading}
-        status={status}
-      />
-    </>
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <MessageList messages={messages ?? []} isLoading={isLoading} />
+      </div>
+      <div className="shrink-0">
+        <ChatInput
+          input={input}
+          setInput={setInput}
+          onSend={handleSend}
+          isLoading={isLoading}
+          status={status}
+        />
+      </div>
+    </div>
   );
 }

@@ -19,6 +19,7 @@ import {
 import { runBigQueryTool } from '../../lib/agent/tools/runBigQuery';
 import { generateEchartsOptionTool } from '../../lib/agent/tools/generateEchartsOption';
 import { generateHtmlReportTool } from '../../lib/agent/tools/generateHtmlReport';
+import { callDashboardAPITool } from '../../lib/agent/tools/callDashboardAPI';
 
 export const maxDuration = 60;
 
@@ -108,13 +109,15 @@ export async function POST(request: Request) {
       system: systemPrompt,
       messages: convertToModelMessages(uiMessages),
       tools: {
+        callDashboardAPI: callDashboardAPITool,
         runBigQuery: runBigQueryTool,
         generateEchartsOption: generateEchartsOptionTool,
         generateHtmlReport: generateHtmlReportTool,
       },
       maxSteps: 10,
       // Allow multiple steps so report workflow can run: runBigQuery → generateEchartsOption → generateHtmlReport (default is stepCountIs(1))
-      stopWhen: stepCountIs(5),
+      // Increased to 10 to ensure user behavior analysis (runBigQuery → generateHtmlReport) completes
+      stopWhen: stepCountIs(10),
     });
 
     return result.toUIMessageStreamResponse({

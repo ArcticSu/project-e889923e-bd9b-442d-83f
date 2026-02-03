@@ -48,6 +48,27 @@ export function ChatMessage({
     return idx;
   })();
 
+  // Track which tools have completed results to hide duplicate "Calling..." messages
+  const completedTools = new Set<string>();
+  parts.forEach((p) => {
+    const name = getToolName(p);
+    const result = getToolResult(p);
+    if (name && result) {
+      completedTools.add(name);
+    }
+  });
+
+  // Track the last tool-call index for each tool
+  const lastToolCallIndex = new Map<string, number>();
+  parts.forEach((p, i) => {
+    if (p.type === 'tool-call') {
+      const name = getToolName(p);
+      if (name) {
+        lastToolCallIndex.set(name, i);
+      }
+    }
+  });
+
   const renderPart = (part: Part, index: number) => {
     if (part.type === 'text') {
       if (lastHtmlReportIndex >= 0 && index > lastHtmlReportIndex) return null;
@@ -82,9 +103,14 @@ export function ChatMessage({
       );
     }
     if (part.type === 'tool-call') {
+      const name = getToolName(part);
+      // Only show the last tool-call for each tool, and hide if tool has completed
+      const isLastCall = lastToolCallIndex.get(name) === index;
+      const isCompleted = completedTools.has(name);
+      if (!isLastCall || isCompleted) return null;
       return (
         <div key={index} className="text-sm italic text-gray-500">
-          Calling {getToolName(part) || 'tool'}…
+          Calling {name || 'tool'}…
         </div>
       );
     }
@@ -92,7 +118,11 @@ export function ChatMessage({
     if (isToolPart) {
       const name = getToolName(part);
       const result = getToolResult(part);
-      if (!result && name) {
+      // Hide "Calling..." if tool has completed (has result)
+      if (!result && name && !completedTools.has(name)) {
+        // Only show if this is the last pending call for this tool
+        const lastCallIdx = lastToolCallIndex.get(name);
+        if (lastCallIdx !== undefined && lastCallIdx < index) return null;
         return (
           <div key={index} className="text-sm italic text-gray-500">
             Calling {name}…
@@ -148,9 +178,14 @@ export function ChatMessage({
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`w-fit max-w-[85%] rounded-lg px-4 py-2.5 ${
-          isUser ? 'bg-blue-600 text-white' : 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200'
-        }`}
+        className={`
+          rounded-lg px-4 py-2.5
+          ${isUser
+            ? 'w-fit max-w-[85%] bg-blue-600 text-white'
+            : 'w-full max-w-[95%] bg-white text-gray-900 shadow-sm ring-1 ring-gray-200'
+          }
+        `}
+        
       >
         {parts.map((p, i) => renderPart(p, i))}
       </div>

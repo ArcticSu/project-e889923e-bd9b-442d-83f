@@ -17,6 +17,7 @@ export function SessionList({
   onSelect,
   onNewChat,
   onAfterAction,
+  hideDashboardLink = false,
 }: {
   sessions: SessionItem[];
   currentId: string | null;
@@ -25,6 +26,8 @@ export function SessionList({
   onNewChat: () => void;
   /** Called after rename or delete; if deletedId is set, the parent may redirect when it was the current session */
   onAfterAction?: (deletedId?: string) => void;
+  /** Hide the Dashboard link (useful when already on dashboard page) */
+  hideDashboardLink?: boolean;
 }) {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -99,12 +102,14 @@ export function SessionList({
   return (
     <div className="flex h-full w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
       <div className="border-b border-gray-200 p-3 space-y-2">
-        <Link
-          href="/"
-          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          ← Dashboard
-        </Link>
+        {!hideDashboardLink && (
+          <Link
+            href="/"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            ← Dashboard
+          </Link>
+        )}
         <button
           type="button"
           onClick={onNewChat}
