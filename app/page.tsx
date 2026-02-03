@@ -9,6 +9,7 @@ import MetricCard from '../components/MetricCard';
 import StatusPie from '../components/StatusPie';
 import ActiveSizeChart from '../components/ActiveSizeChart';
 import GrowthChurnChart from '../components/GrowthChurnChart';
+import UserList from '../components/UserList';
 
 type HistoryRow = {
   month: string;
@@ -152,7 +153,7 @@ export default function Home() {
             )}
 
             <div className="mt-6">
-              <ActiveSizeChart data={combined} />
+              <UserList />
             </div>
           </div>
 

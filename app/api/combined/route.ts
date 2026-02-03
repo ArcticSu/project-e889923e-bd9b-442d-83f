@@ -23,8 +23,7 @@ export async function GET() {
       churned_paid_users_eom: Number(r.churned_paid_users_eom || 0),
       prev_active_paid_users_eom: r.prev_active_paid_users_eom == null ? null : Number(r.prev_active_paid_users_eom),
       growth_rate: r.growth_rate == null ? null : Number(r.growth_rate),
-      churn_rate: r.churn_rate == null ? null : Number(r.churn_rate),
-      net_user_change: Number(r.net_user_change || 0)
+      churn_rate: r.churn_rate == null ? null : Number(r.churn_rate)
     }));
     return NextResponse.json(out);
   } catch (err: any) {
