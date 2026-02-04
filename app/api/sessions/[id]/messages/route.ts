@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { getSession, getSessionMessages } from '../../../../lib/agent/store';
 
 /**
- * GET /api/sessions/[id]/messages — 拉取该 session 全部消息，按 createdAt 升序
- * 返回格式与 useChat 兼容：role + content
+ * GET /api/sessions/[id]/messages — Fetch all messages for this session, ordered by createdAt ascending
+ * Returns format compatible with useChat: role + content
  */
 export async function GET(
   _request: Request,

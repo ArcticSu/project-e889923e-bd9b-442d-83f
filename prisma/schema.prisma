@@ -1,4 +1,4 @@
-// Prisma schema for MRR dashboard + Agent Chat (阶段 2 最小存储)
+// Prisma schema for MRR dashboard + Agent Chat (Phase 2 minimal storage)
 generator client {
   provider = "prisma-client-js"
 }

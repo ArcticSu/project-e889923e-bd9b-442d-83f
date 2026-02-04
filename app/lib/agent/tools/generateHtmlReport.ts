@@ -36,7 +36,7 @@ function tableHtml(title: string, columns: string[], rows: unknown[][]): string 
 
 export const generateHtmlReportTool = tool({
   description:
-    'Generate an HTML insight report. For user behavior analysis: use after runBigQuery only (set charts to empty array). For dashboard metrics: use after runBigQuery and generateEchartsOption. All fields except topic are optional but should be provided with meaningful content when available. Do not include <script>.',
+    'Generate an HTML insight report. For user behavior analysis: use after runBigQuery only (set charts to empty array). For dashboard metrics: use after runBigQuery and generateEchartsOption. **CRITICAL**: You MUST provide meaningful content for ALL fields (executiveSummary, keyMetricsText, insightsWhat, insightsWhy, insightsSoWhat, insightsNowWhat, risksText, nextStepsText). Do NOT leave them empty or use placeholder text. Base your analysis on the actual data from callDashboardAPI or runBigQuery. Do not include <script>.',
   inputSchema: z.object({
     topic: z.string().describe('Report topic / title (REQUIRED)'),
     keyFindings: z.array(z.string()).optional().default([]).describe('Bullet key findings from the data (optional, defaults to empty array)'),

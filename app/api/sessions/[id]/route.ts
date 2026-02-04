@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { getSession, getSessionMessages, updateSessionTitle, deleteSession } from '../../../lib/agent/store';
 
 /**
- * GET /api/sessions/[id] — 单个 session + 消息（用于切换会话时加载）
- * 返回 { session: { id, title, updatedAt }, messages: ChatMessage[] }
+ * GET /api/sessions/[id] — Get single session + messages (for loading when switching sessions)
+ * Returns { session: { id, title, updatedAt }, messages: ChatMessage[] }
  */
 export async function GET(
   _request: Request,
@@ -34,7 +34,7 @@ export async function GET(
 }
 
 /**
- * PATCH /api/sessions/[id] — 重命名会话
+ * PATCH /api/sessions/[id] — Rename session
  * body: { title: string }
  */
 export async function PATCH(
@@ -61,7 +61,7 @@ export async function PATCH(
 }
 
 /**
- * DELETE /api/sessions/[id] — 删除会话（级联删除消息）
+ * DELETE /api/sessions/[id] — Delete session (cascades to messages)
  */
 export async function DELETE(
   _request: Request,

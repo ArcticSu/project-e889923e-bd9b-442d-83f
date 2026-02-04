@@ -9,7 +9,7 @@ WITH subs AS (
 ),
 
 upgrade_canceled AS (
-  -- 旧订阅是 canceled，且同 customer 在 canceled_at 前后 5 分钟内创建了新订阅 => 视为 upgrade cancel
+  -- Old subscription is canceled, and same customer created new subscription within ±5 minutes of canceled_at => treat as upgrade cancel
   SELECT DISTINCT
     old_sub.subscription_id
   FROM subs AS old_sub
@@ -38,8 +38,8 @@ subs_labeled AS (
 ),
 
 customer_one_status AS (
-  -- 每个 customer 只选一个“最终状态”
-  -- 规则：优先 active，其次 trialing / past_due / unpaid / incomplete / incomplete_expired，最后 canceled
+  -- Select one final status per customer
+  -- Priority: active > trialing / past_due / unpaid / incomplete / incomplete_expired > canceled
   SELECT
     customer_id,
     status_effective

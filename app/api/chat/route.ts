@@ -87,7 +87,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 本次发送的 user 消息：取最后一条 user，立刻写入 DB
     const lastUser = [...uiMessages].reverse().find((m) => m.role === 'user');
     if (lastUser) {
       const content = extractTextFromMessage(lastUser);

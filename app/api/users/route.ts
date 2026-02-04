@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import { getBigQueryClient } from '../../lib/bigquery';
+import { loadSQL } from '../../lib/sql';
 
 export const runtime = 'nodejs';
-
-function loadSQL(name: string) {
-  const p = path.join(process.cwd(), 'sql', name);
-  return fs.readFileSync(p, 'utf8');
-}
+export const dynamic = 'force-dynamic';
 
 const USERS_SQL = loadSQL('users_list.sql');
 
@@ -31,7 +26,6 @@ export async function GET(req: Request) {
       customer_created_ts: r.customer_created_ts?.value || r.customer_created_ts,
       is_delinquent: r.is_delinquent || false,
       subscription_status: r.subscription_status || 'none',
-      monthly_mrr: Number(r.monthly_mrr || 0),
       price_amount: r.price_amount != null ? Number(r.price_amount) : null,
       price_interval: r.price_interval || null,
       quantity: r.quantity != null ? Number(r.quantity) : 1,

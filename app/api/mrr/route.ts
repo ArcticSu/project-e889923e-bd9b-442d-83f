@@ -1,15 +1,9 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import { getBigQueryClient } from '../../lib/bigquery';
+import { loadSQL } from '../../lib/sql';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-function loadSQL(name: string) {
-  const p = path.join(process.cwd(), 'sql', name);
-  return fs.readFileSync(p, 'utf8');
-}
 
 const HISTORICAL_SQL = loadSQL('mrr_3col.sql');
 const CURRENT_SQL = `

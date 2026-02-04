@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import TrendChart from '../components/TrendChart';
@@ -7,7 +7,6 @@ import MRR3Chart from '../components/MRR3Chart';
 import ActiveBreakdown from '../components/ActiveBreakdown';
 import MetricCard from '../components/MetricCard';
 import StatusPie from '../components/StatusPie';
-import ActiveSizeChart from '../components/ActiveSizeChart';
 import GrowthChurnChart from '../components/GrowthChurnChart';
 import UserList from '../components/UserList';
 import { AgentChat } from '../components/agent/AgentChat';
@@ -78,7 +77,7 @@ function toUIMessages(
   });
 }
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionIdFromUrl = searchParams.get('sessionId');
@@ -238,7 +237,7 @@ export default function Home() {
     (id: string) => {
       if (id === sessionIdFromUrl) return;
       router.push(`/?sessionId=${id}`, { scroll: false });
-      setSessionListOpen(false); // 选择会话后自动关闭历史列表
+      setSessionListOpen(false);
     },
     [sessionIdFromUrl, router]
   );
@@ -285,16 +284,12 @@ export default function Home() {
     async (email: string) => {
       const message = `analyze the behavior of user with email: ${email}`;
       
-      // 打开 Agent 侧边栏
       setAgentOpen(true);
       
-      // 如果有当前 session，直接设置 pendingFirstMessage
       if (sessionIdFromUrl) {
         setPendingFirstMessage(message);
         return;
       }
-      
-      // 如果没有 session，创建新 session
       setEmptySending(true);
       setError(null);
       try {
@@ -509,5 +504,19 @@ export default function Home() {
         </>
       )}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="relative min-h-screen bg-gray-50">
+        <div className="flex items-center justify-center min-h-screen">
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }

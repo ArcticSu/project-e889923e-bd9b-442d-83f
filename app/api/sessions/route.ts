@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { createSession, getSessionsList } from '../../lib/agent/store';
 
 /**
- * GET /api/sessions — 会话列表（侧边栏），按 updatedAt 降序
- * 返回 { id, title, updatedAt, lastMessagePreview? }[]
+ * GET /api/sessions — List sessions (sidebar), ordered by updatedAt descending
+ * Returns { id, title, updatedAt, lastMessagePreview? }[]
  */
 export async function GET() {
   try {
@@ -16,8 +16,8 @@ export async function GET() {
 }
 
 /**
- * POST /api/sessions — 创建一个 ChatSession，返回 { sessionId }
- * body 可选：{ title?: string }
+ * POST /api/sessions — Create a ChatSession, returns { sessionId }
+ * body optional: { title?: string }
  */
 export async function POST(request: Request) {
   try {

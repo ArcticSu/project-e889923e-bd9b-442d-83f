@@ -221,11 +221,18 @@ const REPORT_GUIDE = `
   - Include runBigQuery result in dataSnippets: [{ title: "User History", columns: [...], rows: [...] }]
   - Focus on narrative analysis: subscription timeline, upgrade behavior, payment history
   - **After calling generateHtmlReport, do NOT add any follow-up text; the report is the complete response**
-- All fields optional but provide meaningful content:
-  - topic, executiveSummary, keyFindings, keyMetricsText
-  - insightsWhat, insightsWhy, insightsSoWhat, insightsNowWhat
-  - risksText, nextStepsText
-  - dataSnippets: Include API/query result
+- **CRITICAL - ALL FIELDS REQUIRED**: You MUST provide meaningful, data-driven content for ALL fields. Do NOT leave them empty or use placeholder text:
+  - topic: Report title (REQUIRED)
+  - executiveSummary: 1-2 sentences summarizing main findings from the data
+  - keyFindings: Array of 3-5 bullet points with specific numbers from the data
+  - keyMetricsText: Paragraph with key numbers and KPIs from callDashboardAPI/runBigQuery results
+  - insightsWhat: Describe WHAT happened with specific trends and numbers from the data
+  - insightsWhy: Explain WHY it happened based on data patterns
+  - insightsSoWhat: Explain business impact and implications
+  - insightsNowWhat: Provide concrete, actionable recommendations
+  - risksText: Identify data limitations or risks based on the analysis
+  - nextStepsText: Provide specific, actionable next steps
+  - dataSnippets: Include API/query result tables
   - charts: Include chart option (A & C) or [] (B)
 `;
 
@@ -289,6 +296,7 @@ ${REPORT_GUIDE}
 **REMEMBER**: 
 - For dashboard metrics, use callDashboardAPI. Do NOT use runBigQuery.
 - For user behavior analysis, after runBigQuery you MUST call generateHtmlReport. Do NOT stop after runBigQuery.
+- **CRITICAL for generateHtmlReport**: You MUST fill ALL fields with meaningful, data-driven content. Do NOT leave insightsWhat, insightsWhy, insightsSoWhat, insightsNowWhat, risksText, or nextStepsText empty. Base all content on the actual data from callDashboardAPI or runBigQuery results.
 
 Respond in the same language the user uses. Be concise and actionable.`;
 }

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 type User = {
@@ -8,7 +8,6 @@ type User = {
   customer_created_ts: string;
   is_delinquent: boolean;
   subscription_status: string;
-  monthly_mrr: number;
   price_amount: number | null;
   price_interval: string | null;
   quantity: number;

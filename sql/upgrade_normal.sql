@@ -14,7 +14,7 @@ active_customers AS (
   FROM subs
   WHERE (canceled_at_ts IS NULL OR canceled_at_ts > CURRENT_TIMESTAMP())
     AND created_ts <= CURRENT_TIMESTAMP()
-    AND status IN ('active', 'trialing', 'past_due')
+    AND status IN ('active', 'past_due')
 ),
 upgrade_customers AS (
   SELECT DISTINCT old_sub.customer_id

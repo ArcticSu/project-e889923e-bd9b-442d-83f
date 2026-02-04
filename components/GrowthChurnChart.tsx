@@ -63,7 +63,6 @@ export default function GrowthChurnChart({ data }: { data: any[] }) {
               wrapperStyle={{ paddingTop: '10px' }}
               iconType="line"
             />
-            {/* 先渲染柱状图（在后面），再渲染折线（在前面） */}
             <Bar 
               yAxisId="right" 
               dataKey="active_paid_users_eom" 

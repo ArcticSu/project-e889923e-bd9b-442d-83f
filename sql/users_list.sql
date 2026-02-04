@@ -14,9 +14,7 @@ WITH subs_mrr AS (
     s.price_amount,
     s.price_interval,
     s.quantity,
-    s.currency,
-    (s.price_amount * s.quantity) / 100.0 /
-      CASE WHEN s.price_interval = 'year' THEN 12 ELSE 1 END AS monthly_mrr
+    s.currency
   FROM `project-e889923e-bd9b-442d-83f.stripe_test.stripe_subscriptions` s
   WHERE
     s.subscription_id IS NOT NULL AND s.subscription_id != ''
@@ -34,7 +32,6 @@ customer_latest_sub AS (
     status,
     created_ts,
     canceled_at_ts,
-    monthly_mrr,
     price_amount,
     price_interval,
     quantity,
@@ -78,7 +75,6 @@ SELECT
   ci.customer_created_ts,
   COALESCE(ci.customer_delinquent, FALSE) AS is_delinquent,
   cls.status AS subscription_status,
-  cls.monthly_mrr,
   cls.price_amount,
   cls.price_interval,
   cls.quantity,
@@ -92,4 +88,4 @@ SELECT
 FROM customer_info ci
 LEFT JOIN customer_latest_sub cls ON ci.customer_id = cls.customer_id
 LEFT JOIN customer_unpaid_invoices cui ON ci.customer_id = cui.customer_id
-ORDER BY cls.monthly_mrr DESC NULLS LAST, ci.customer_created_ts DESC;
+ORDER BY ci.customer_created_ts DESC;

@@ -1,14 +1,8 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import { getBigQueryClient } from '../../lib/bigquery';
+import { loadSQL } from '../../lib/sql';
 
 export const runtime = 'nodejs';
-
-function loadSQL(name: string) {
-  const p = path.join(process.cwd(), 'sql', name);
-  return fs.readFileSync(p, 'utf8');
-}
 
 const PIE_SQL = loadSQL('pie.sql');
 

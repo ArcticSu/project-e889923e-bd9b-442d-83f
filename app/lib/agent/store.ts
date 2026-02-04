@@ -1,5 +1,5 @@
 /**
- * Agent 消息存储：Session + Messages 最小逻辑，收敛在 agent 目录
+ * Agent message storage: Session + Messages minimal logic, consolidated in agent directory
  */
 
 import { prisma } from '../db';
@@ -90,7 +90,7 @@ export async function getSessionMessages(sessionId: string) {
   }));
 }
 
-/** 从 UIMessage parts 提取纯文本 content */
+/** Extract plain text content from UIMessage parts */
 export function extractTextFromMessage(msg: { content?: string; parts?: Array<{ type?: string; text?: string }> }): string {
   if (typeof msg.content === 'string') return msg.content;
   if (Array.isArray(msg.parts)) {

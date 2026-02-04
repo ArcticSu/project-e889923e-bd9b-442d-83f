@@ -63,7 +63,7 @@ export const runBigQueryTool = tool({
         rows: rowArrays,
       };
       if (rowArrays.length === 0) {
-        out.emptyMessage = 'Query returned 0 rows. No records for the given criteria or period. Tell the user clearly (e.g. "No records found" / "暂无记录").';
+        out.emptyMessage = 'Query returned 0 rows. No records for the given criteria or period. Tell the user clearly (e.g. "No records found").';
       }
       return out;
     } catch (err) {

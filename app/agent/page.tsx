@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AgentChat } from '../../components/agent/AgentChat';
 import { ChatInput } from '../../components/agent/ChatInput';
@@ -21,7 +21,7 @@ function toUIMessages(
   });
 }
 
-export default function AgentPage() {
+function AgentPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionIdFromUrl = searchParams.get('sessionId');
@@ -217,5 +217,19 @@ export default function AgentPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function AgentPage() {
+  return (
+    <Suspense fallback={
+      <main className="flex h-screen bg-gray-50">
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      </main>
+    }>
+      <AgentPageContent />
+    </Suspense>
   );
 }
