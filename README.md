@@ -2,6 +2,9 @@
 
 A Next.js 14 dashboard for visualizing Stripe subscription MRR (Monthly Recurring Revenue) metrics with an AI-powered analytics agent.
 
+Project Slides:  
+https://docs.google.com/presentation/d/1lFOgjM0blSW8_OM4ubCe4QUF_GLVzMOr/edit?usp=sharing
+
 ## Features
 
 - **MRR Dashboard** — Real-time MRR, historical trends (Gross/Delinquent/Collectible), user growth/churn, subscription status distribution
