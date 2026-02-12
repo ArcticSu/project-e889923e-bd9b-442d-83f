@@ -1,8 +1,8 @@
 -- Combined Bar Metrics (Gross MRR month-end snapshot logic)
 -- Output per month:
--- 1) active_paid_users_eom  (bar) - based on gross MRR snapshot
--- 2) new_paid_users_eom     (count of users created in this month, excluding upgrades)
--- 3) churned_paid_users_eom (count of users canceled in this month, excluding upgrades)
+-- 1) active_paid_users_eom  (bar)
+-- 2) new_paid_users_eom     (bar or line)
+-- 3) churned_paid_users_eom (line)
 -- 4) growth_rate            (line) = new / prev_active
 -- 5) churn_rate             (line) = churn / prev_active
 --
@@ -13,8 +13,6 @@
 -- Notes:
 -- - "user" is customer_id (dedup upgrade automatically).
 -- - We count only paying users: monthly_mrr > 0.
--- - Upgrade users: if a customer cancels and creates a new subscription within 5 minutes,
---   it's considered an upgrade (not churn, not growth).
 
 WITH months AS (
   SELECT month_start
@@ -27,8 +25,7 @@ month_bounds AS (
   SELECT
     m.month_start,
     DATE_SUB(DATE_ADD(m.month_start, INTERVAL 1 MONTH), INTERVAL 1 DAY) AS month_end_date,
-    TIMESTAMP(DATE_ADD(m.month_start, INTERVAL 1 MONTH)) AS next_month_start_ts,
-    TIMESTAMP(m.month_start) AS month_start_ts
+    TIMESTAMP(DATE_ADD(m.month_start, INTERVAL 1 MONTH)) AS next_month_start_ts
   FROM months m
 ),
 
@@ -61,36 +58,6 @@ subs_mrr AS (
   FROM subs
 ),
 
--- Identify upgrade cancellations: canceled subscription where same customer
--- created a new subscription within 5 minutes
-upgrade_canceled_sub_ids AS (
-  SELECT DISTINCT
-    old_sub.subscription_id
-  FROM subs_mrr AS old_sub
-  JOIN subs_mrr AS new_sub
-    ON old_sub.customer_id = new_sub.customer_id
-   AND old_sub.subscription_id != new_sub.subscription_id
-   AND old_sub.canceled_at_ts IS NOT NULL
-   AND new_sub.created_ts BETWEEN
-       TIMESTAMP_SUB(old_sub.canceled_at_ts, INTERVAL 5 MINUTE)
-       AND TIMESTAMP_ADD(old_sub.canceled_at_ts, INTERVAL 5 MINUTE)
-),
-
--- Identify upgrade created subscriptions: new subscription created within 5 minutes
--- of a canceled subscription for the same customer
-upgrade_created_sub_ids AS (
-  SELECT DISTINCT
-    new_sub.subscription_id
-  FROM subs_mrr AS old_sub
-  JOIN subs_mrr AS new_sub
-    ON old_sub.customer_id = new_sub.customer_id
-   AND old_sub.subscription_id != new_sub.subscription_id
-   AND old_sub.canceled_at_ts IS NOT NULL
-   AND new_sub.created_ts BETWEEN
-       TIMESTAMP_SUB(old_sub.canceled_at_ts, INTERVAL 5 MINUTE)
-       AND TIMESTAMP_ADD(old_sub.canceled_at_ts, INTERVAL 5 MINUTE)
-),
-
 -- customer is "active & paying" at month-end (gross snapshot)
 customer_active_eom AS (
   SELECT
@@ -113,39 +80,41 @@ active_users AS (
   GROUP BY 1
 ),
 
--- New paid users: created in this month, excluding upgrade subscriptions
-new_users_by_month AS (
+-- first month a customer becomes active-paying at EOM (gross snapshot)
+first_active_month AS (
   SELECT
-    b.month_start AS month,
-    COUNT(DISTINCT s.customer_id) AS new_paid_users_eom
-  FROM month_bounds b
-  JOIN subs_mrr s
-    ON s.created_ts >= b.month_start_ts
-   AND s.created_ts < b.next_month_start_ts
-   AND s.monthly_mrr > 0
-  LEFT JOIN upgrade_created_sub_ids u
-    ON u.subscription_id = s.subscription_id
-  WHERE u.subscription_id IS NULL  -- Exclude upgrade subscriptions
+    customer_id,
+    MIN(month) AS first_month
+  FROM customer_active_eom
   GROUP BY 1
 ),
 
--- Churned paid users: canceled in this month, excluding upgrade cancellations
-churn_users_by_month AS (
+-- new paid users at EOM
+new_users AS (
   SELECT
-    b.month_start AS month,
-    COUNT(DISTINCT s.customer_id) AS churned_paid_users_eom
-  FROM month_bounds b
-  JOIN subs_mrr s
-    ON s.canceled_at_ts >= b.month_start_ts
-   AND s.canceled_at_ts < b.next_month_start_ts
-   AND s.monthly_mrr > 0
-  LEFT JOIN upgrade_canceled_sub_ids u
-    ON u.subscription_id = s.subscription_id
-  WHERE u.subscription_id IS NULL  -- Exclude upgrade cancellations
+    f.first_month AS month,
+    COUNT(DISTINCT f.customer_id) AS new_paid_users_eom
+  FROM first_active_month f
   GROUP BY 1
 ),
 
--- stitch all together
+-- churned paid users at EOM:
+-- active in prev month-end but NOT active in current month-end
+churn_users AS (
+  SELECT
+    cur.month AS month,
+    COUNT(DISTINCT prev.customer_id) AS churned_paid_users_eom
+  FROM customer_active_eom prev
+  JOIN customer_active_eom cur
+    ON cur.month = DATE_ADD(prev.month, INTERVAL 1 MONTH)
+  LEFT JOIN customer_active_eom cur_has
+    ON cur_has.month = cur.month
+   AND cur_has.customer_id = prev.customer_id
+  WHERE cur_has.customer_id IS NULL
+  GROUP BY 1
+),
+
+-- stitch all together + rates
 final AS (
   SELECT
     b.month_start AS month,
@@ -154,8 +123,8 @@ final AS (
     IFNULL(c.churned_paid_users_eom, 0) AS churned_paid_users_eom
   FROM month_bounds b
   LEFT JOIN active_users a ON a.month = b.month_start
-  LEFT JOIN new_users_by_month n ON n.month = b.month_start
-  LEFT JOIN churn_users_by_month c ON c.month = b.month_start
+  LEFT JOIN new_users n    ON n.month = b.month_start
+  LEFT JOIN churn_users c  ON c.month = b.month_start
 )
 
 SELECT
@@ -171,6 +140,9 @@ SELECT
   SAFE_DIVIDE(new_paid_users_eom,
               LAG(active_paid_users_eom) OVER (ORDER BY month)) AS growth_rate,
   SAFE_DIVIDE(churned_paid_users_eom,
-              LAG(active_paid_users_eom) OVER (ORDER BY month)) AS churn_rate
+              LAG(active_paid_users_eom) OVER (ORDER BY month)) AS churn_rate,
+
+  -- net change (useful for bar/line too)
+  (new_paid_users_eom - churned_paid_users_eom) AS net_user_change
 FROM final
 ORDER BY month;

@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     const [histRows] = await bigquery.query({ query: HISTORICAL_SQL, location: 'US' });
     const [curRows] = await bigquery.query({ query: CURRENT_SQL, location: 'US' });
 
-    const history = (histRows as any[]).slice(0, months).reverse().map(r => ({
+    const history = (histRows as any[]).slice(0, months).map(r => ({
       month: r.month && r.month.value ? r.month.value : r.month,
       gross: Number(r.gross_mrr_amount || 0),
       delinquent: Number(r.delinquent_mrr_amount || 0),

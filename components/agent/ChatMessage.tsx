@@ -1,6 +1,9 @@
 'use client';
 
 import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { EChartMessage } from './EChartMessage';
 import { HtmlReportMessage } from './HtmlReportMessage';
 
@@ -85,6 +88,8 @@ export function ChatMessage({
       return (
         <div key={index} className="prose prose-sm max-w-none break-words">
           <ReactMarkdown
+            remarkPlugins={[remarkMath]}
+            rehypePlugins={[rehypeKatex]}
             components={{
               p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
               strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
